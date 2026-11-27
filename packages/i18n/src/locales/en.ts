@@ -13,6 +13,13 @@ export const en = {
   'agent.not_in_file': "I don't see that in your file. I will ask the team and get back to you.",
   'agent.urgent_escalation': 'This sounds urgent. I am connecting you to our team now.',
   'agent.read_aloud_offer': 'Would you like me to read this aloud?',
+  "agent.answer_blocked": "I can't answer that one directly. I have asked your legal team to follow up with you.",
+  "agent.question_received": "Thank you. I have saved your question.",
+  "agent.disclosures_declined": "I understand. A member of our team can help you instead. You can call the office at any time.",
+  "agent.intake_saved": "Thank you. I have saved your answers. An attorney will review them.",
+  "agent.booking_next_step": "Our team will contact you to set up a consultation.",
+  "agent.playback_intro": "Here is what I have. Please tell me if anything is wrong.",
+  "agent.on_call_alerted": "I have alerted our on-call team. Someone will contact you as soon as possible. If anyone is in immediate danger, call 911.",
 } as const;
 
 export type MessageKey = keyof typeof en;
