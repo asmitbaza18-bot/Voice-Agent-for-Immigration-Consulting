@@ -1,0 +1,219 @@
+// Core data model for the Chhetry Law voice consultation layer.
+// Source: CLAUDE.md section 6, plus AuditLog (section 13).
+//
+// Sensitive data (guardrail 8): A-numbers, criminal history, persecution
+// details and immigration status are never stored in plaintext columns.
+// Columns ending in `Enc` hold ciphertext from src/encryption.ts
+// (AES-256-GCM, `enc:v1:...`). Columns ending in `Hash` hold a keyed HMAC
+// blind index so we can look a record up without decrypting every row.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Lang {
+  en
+  ne
+  bn
+}
+
+enum Channel {
+  app
+  phone
+  web
+}
+
+enum Role {
+  client
+  staff
+  attorney
+  management
+  admin
+  super_admin
+}
+
+enum Goal {
+  family
+  employment
+  humanitarian
+  removal_defense
+  naturalization
+  status_question
+  other
+}
+
+enum UrgentFlag {
+  detained
+  hearing_within_7_days
+  removal_order
+  ice_contact
+  deadline_within_14_days
+  stuck_abroad
+  danger
+}
+
+enum AssessmentStatus {
+  pending_review
+  approved
+  edited
+  rejected
+}
+
+enum ReviewKind {
+  assessment
+  legal_question
+}
+
+enum ReviewStatus {
+  open
+  approved
+  edited_sent
+  call_client
+  rejected
+}
+
+model Person {
+  id                String   @id @default(cuid())
+  /// ID of this person in the firm CRM (system of record). Null until synced.
+  crmId             String?  @unique
+  fullName          String
+  otherNames        String[]
+  phone             String?
+  email             String?
+  smsConsent        Boolean  @default(false)
+  preferredLang     Lang     @default(en)
+  /// A-number ciphertext. Mask in UI to the last 3 digits.
+  aNumberEnc        String?
+  /// HMAC blind index of the normalized A-number, for findPerson({ aNumber }).
+  aNumberHash       String?  @unique
+  /// Immigration status ciphertext (sensitive under guardrail 8).
+  immigrationStatusEnc String?
+  countryOfBirth    String?
+  citizenships      String[]
+  state             String?
+  city              String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  conversations Conversation[]
+  reviewItems   ReviewItem[]
+
+  @@index([phone])
+  @@index([email])
+}
+
+model Conversation {
+  id                   String       @id @default(cuid())
+  channel              Channel
+  lang                 Lang
+  personId             String?
+  person               Person?      @relation(fields: [personId], references: [id])
+  startedAt            DateTime     @default(now())
+  endedAt              DateTime?
+  disclosuresAccepted  Boolean      @default(false)
+  disclosuresVersion   String?
+  recordingConsent     Boolean      @default(false)
+  urgentFlags          UrgentFlag[]
+  /// Dialog state from CLAUDE.md section 9 (start, disclosures, triage, ...).
+  state                String       @default("start")
+  /// Pointer to the encrypted transcript blob in the document store.
+  transcriptRefEnc     String?
+  summaryEnc           String?
+
+  intakes IntakeRecord[]
+
+  @@index([personId])
+  @@index([startedAt])
+}
+
+model IntakeRecord {
+  id                  String       @id @default(cuid())
+  conversationId      String
+  conversation        Conversation @relation(fields: [conversationId], references: [id])
+  goal                Goal
+  /// Non-sensitive typed answers: { [moduleId]: { [field]: FieldValue } }.
+  modules             Json         @default("{}")
+  /// Ciphertext of a JSON object holding sensitive answers (red_flags,
+  /// humanitarian, history.current_status, history.a_number, ...).
+  sensitiveModulesEnc String?
+  uncertainFields     String[]
+  discussWithAttorney String[]
+  /// DocumentRef[] snapshot.
+  documents           Json         @default("[]")
+  confirmedAt         DateTime?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  assessments Assessment[]
+
+  @@index([conversationId])
+}
+
+model Assessment {
+  id                String           @id @default(cuid())
+  intakeId          String
+  intake            IntakeRecord     @relation(fields: [intakeId], references: [id])
+  pathways          Json             @default("[]")
+  /// Red flags can describe criminal history, so they are encrypted.
+  redFlagsEnc       String?
+  deadlines         Json             @default("[]")
+  documentChecklist Json             @default("[]")
+  memoMarkdownEnc   String?
+  rulesVersion      String
+  status            AssessmentStatus @default(pending_review)
+  reviewedBy        String?
+  reviewedAt        DateTime?
+  createdAt         DateTime         @default(now())
+
+  reviewItems ReviewItem[]
+
+  @@index([status])
+}
+
+model ReviewItem {
+  id           String       @id @default(cuid())
+  kind         ReviewKind
+  personId     String
+  person       Person       @relation(fields: [personId], references: [id])
+  assessmentId String?
+  assessment   Assessment?  @relation(fields: [assessmentId], references: [id])
+  /// Client's question and the AI draft may contain sensitive facts.
+  questionEnc  String?
+  aiDraftEnc   String
+  /// Attorney-approved text that may reach the client (guardrail 1).
+  finalTextEnc String?
+  status       ReviewStatus @default(open)
+  attorneyId   String?
+  decidedAt    DateTime?
+  createdAt    DateTime     @default(now())
+
+  @@index([status, createdAt])
+  @@index([personId])
+}
+
+/// Append-only. UPDATE and DELETE are blocked by a trigger in the initial
+/// migration. Never put plaintext PII in `metadata`: store ids and field names.
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  at         DateTime @default(now())
+  actorType  String   // 'user' | 'agent' | 'system'
+  actorId    String?
+  actorRole  Role?
+  /// e.g. 'person.read', 'intake.field.write', 'ai.output', 'review.approve'
+  action     String
+  entityType String
+  entityId   String?
+  /// Request or conversation id for tracing.
+  requestId  String?
+  /// Redacted context (field names, rule ids, model id, hash of AI output).
+  metadata   Json     @default("{}")
+
+  @@index([entityType, entityId])
+  @@index([actorId, at])
+  @@index([action, at])
+}
