@@ -26,6 +26,24 @@ importers:
       '@anthropic-ai/sdk':
         specifier: ^1.14.0
         version: 1.14.0(zod@4.6.7)
+      '@chhetry/crm':
+        specifier: workspace:*
+        version: link:../crm
+      '@chhetry/db':
+        specifier: workspace:*
+        version: link:../db
+      '@chhetry/guardrails':
+        specifier: workspace:*
+        version: link:../guardrails
+      '@chhetry/i18n':
+        specifier: workspace:*
+        version: link:../i18n
+      '@chhetry/intake-schema':
+        specifier: workspace:*
+        version: link:../intake-schema
+      '@chhetry/rules':
+        specifier: workspace:*
+        version: link:../rules
       '@chhetry/shared':
         specifier: workspace:*
         version: link:../shared

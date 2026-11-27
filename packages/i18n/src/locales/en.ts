@@ -20,6 +20,11 @@ export const en = {
   "agent.booking_next_step": "Our team will contact you to set up a consultation.",
   "agent.playback_intro": "Here is what I have. Please tell me if anything is wrong.",
   "agent.on_call_alerted": "I have alerted our on-call team. Someone will contact you as soon as possible. If anyone is in immediate danger, call 911.",
+  "agent.ask_prompt": "What would you like to know about your case?",
+  "agent.off_topic": "I can only help with your immigration matter with Chhetry Law.",
+  "agent.question_for_consult": "Thank you. I have noted that question for the attorney. Let's continue.",
+  "agent.answer_this_question": "Let's continue with this question.",
+  "label.attorney_reviewed": "Reviewed by your attorney",
 } as const;
 
 export type MessageKey = keyof typeof en;

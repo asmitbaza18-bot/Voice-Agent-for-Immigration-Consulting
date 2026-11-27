@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Legal-question classifier, output checks (Milestone 1)",
+  "description": "Input classifier, escalation checker, output checker",
   "exports": {
     ".": "./src/index.ts"
   },

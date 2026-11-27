@@ -57,7 +57,7 @@ export interface Conversation {
 export type Goal = 'family' | 'employment' | 'humanitarian' | 'removal_defense'
   | 'naturalization' | 'status_question' | 'other';
 
-export type ModuleId = 'core' | 'history' | 'family' | 'employment'
+export type ModuleId = 'triage' | 'core' | 'history' | 'family' | 'employment'
   | 'humanitarian' | 'removal' | 'naturalization' | 'red_flags' | 'documents';
 
 /** A typed intake answer. `discuss_with_attorney` records a sensitive question the caller chose not to answer. */
@@ -114,8 +114,15 @@ export interface ReviewItem {
   personId: string;
   question?: string; // for legal_question
   aiDraft: string;
+  /** Why it was queued: a classifier reason (eligibility, travel, criminal, ...), 'not_in_file' or 'answer_blocked'. */
+  reason?: string;
+  assessmentId?: string;
+  /** Attorney-approved text. The only text from a review item that may reach the client (guardrail 1). */
+  finalText?: string;
   status: 'open' | 'approved' | 'edited_sent' | 'call_client' | 'rejected';
   attorneyId?: string;
+  createdAt?: string;
+  decidedAt?: string;
 }
 
 /** Case summary returned by the CRM (CLAUDE.md section 11). */

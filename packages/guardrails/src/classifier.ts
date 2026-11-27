@@ -19,6 +19,11 @@ export type LlmLabeler = (text: string) => Promise<InputLabel>;
 
 const SEVERITY: Record<InputLabel, number> = { urgent: 3, legal_question: 2, fact: 1, general_info: 1, off_topic: 1 };
 
+/** Most specific first, so `reasons[0]` is the best label for the attorney queue. */
+const REASON_PRIORITY: readonly LegalReason[] = [
+  'criminal', 'travel', 'self_filing', 'hearing_or_notice', 'deportation', 'eligibility', 'strategy', 'fees_timeline_policy_undecided', 'should_can',
+];
+
 function run(patterns: readonly KeywordPattern[], normalized: string): KeywordPattern[] {
   return patterns.filter((p) => matchesAllOf(normalized, p.allOf) !== null);
 }
@@ -31,7 +36,7 @@ export function classifyKeywords(text: string): Classification {
   const matched = [...urgent, ...legal];
   const base = {
     matchedPatterns: matched.map((p) => p.id),
-    reasons: [...new Set(legal.map((p) => p.reason!).filter(Boolean))],
+    reasons: [...new Set(legal.map((p) => p.reason!).filter(Boolean))].sort((a, b) => REASON_PRIORITY.indexOf(a) - REASON_PRIORITY.indexOf(b)),
     urgentFlags: [...new Set(urgent.map((p) => p.urgentFlag!).filter(Boolean))],
     source: 'keywords' as const,
   };

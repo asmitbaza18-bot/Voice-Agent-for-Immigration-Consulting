@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Orchestrator (Milestone 1)",
+  "description": "Orchestrator: dialog state machine, tools, LLM adapter, review queue",
   "exports": {
     ".": "./src/index.ts"
   },
@@ -14,7 +14,13 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^1.14.0",
     "@chhetry/shared": "workspace:*",
-    "zod": "^4.6.7"
+    "zod": "^4.6.7",
+    "@chhetry/crm": "workspace:*",
+    "@chhetry/db": "workspace:*",
+    "@chhetry/guardrails": "workspace:*",
+    "@chhetry/i18n": "workspace:*",
+    "@chhetry/rules": "workspace:*",
+    "@chhetry/intake-schema": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.10.0",

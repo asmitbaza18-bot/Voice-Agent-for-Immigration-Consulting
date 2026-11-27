@@ -9,7 +9,8 @@ export type AuditAction =
   | 'intake.field.write' | 'intake.confirm'
   | 'assessment.create' | 'ai.output' | 'ai.output.blocked'
   | 'review.create' | 'review.approve' | 'review.edit_send' | 'review.call_client' | 'review.reject'
-  | 'escalation.create' | 'crm.write';
+  | 'escalation.create' | 'crm.write'
+  | 'tool.call' | 'tool.denied';
 
 export interface AuditEntryInput {
   actorType: 'user' | 'agent' | 'system';
@@ -38,4 +39,26 @@ export function buildAuditEntry(input: AuditEntryInput) {
     requestId: input.requestId ?? null,
     metadata: (redact(input.metadata ?? {}) as Record<string, unknown>),
   };
+}
+
+export type AuditEntry = ReturnType<typeof buildAuditEntry> & { id: number; at: string };
+
+/** Append-only audit sink. There is deliberately no update or delete. */
+export interface AuditSink {
+  write(input: AuditEntryInput): void;
+}
+
+/** In-memory sink for tests and local dev. Production writes to the AuditLog table. */
+export class MemoryAuditSink implements AuditSink {
+  private readonly rows: AuditEntry[] = [];
+  constructor(private readonly now: () => Date = () => new Date()) {}
+
+  write(input: AuditEntryInput): void {
+    this.rows.push(Object.freeze({ ...buildAuditEntry(input), id: this.rows.length + 1, at: this.now().toISOString() }));
+  }
+
+  /** Read-only copy. */
+  entries(): readonly AuditEntry[] {
+    return [...this.rows];
+  }
 }
