@@ -4,7 +4,7 @@ Status: draft for review
 Owner: engineering (test harness and objective metrics); native-speaker panel (subjective scores); supervising attorney (vocabulary and script sign-off)
 Decision it feeds: the first voice adapter for Milestone 2, recorded as an ADR in `docs/decisions/`
 
-Anything marked **[Assumption]** is a guess to confirm before testing starts. Anything marked **[Firm decision]** was answered by the firm on 2026-11-27. Items still to be filled in are listed in section 14. Vendor capabilities listed here are **not verified**; Gate 0 exists to check them.
+Anything marked **[Assumption]** is a guess to confirm before testing starts. Anything marked **[Firm decision]** was answered by the firm on 2026-11-27. Tester names in brackets are role placeholders until the firm confirms who fills each role. Items still to be filled in are listed in section 14. Vendor capabilities listed here are **not verified**; Gate 0 exists to check them.
 
 ---
 
@@ -84,23 +84,26 @@ A candidate that fails any line here is dropped, whatever its quality. Get each 
 
 ### Speakers
 
-| Language | Speakers | Mix |
+**[Firm decision]** Client language share is **not known yet**. Until the firm sends real shares from the CRM or call log, every test language gets an **equal sample**: the same number of speakers and the same script sets. When the real shares arrive, we reweight the scores (section 9) without re-recording.
+
+| Test language | Speakers | Mix |
 | --- | --- | --- |
-| Nepali | 6 to 8 | Mixed gender; at least 2 aged 55+; Kathmandu-valley and Terai or hill accents |
-| Bengali | 6 to 8 | Mixed gender; at least 2 aged 55+; Bangladeshi (Dhaka and Sylheti-influenced) and West Bengal accents |
-| English | 4 | At least 2 non-native speakers with South Asian accents |
-| Sylheti (conditional) | 3 to 4 | Only if the language-share count (section 14) shows Sylheti is significant |
+| Nepali | 6 | Mixed gender; at least 2 aged 55+; Kathmandu-valley and Terai or hill accents |
+| Bangladeshi Bengali | 6 | Mixed gender; at least 2 aged 55+; Dhaka and other regional accents |
+| Indian Bengali | 6 | Mixed gender; at least 2 aged 55+; West Bengal accents |
+| Sylheti | 6 | Mixed gender; at least 2 aged 55+ |
+| English | 6 | At least 3 non-native speakers with South Asian accents |
 
-**[Assumption]** Most Bengali-speaking clients are from Bangladesh, so Bangladeshi Bengali gets more weight. This stays an assumption until the language-share count in section 14 comes back.
+**[Assumption]** 6 speakers per language. It is enough to see clear differences between providers and still small enough to recruit. Speakers (who record) are separate from listeners (who score, section 10); speakers can be staff, their families, or paid community volunteers.
 
-**Sylheti (conditional test language).** Sylheti is often treated as a dialect of Bengali, but speech recognition usually handles it poorly, and most engines do not list it at all. If the language-share count shows a significant share of Sylheti-speaking clients:
+**Sylheti is in the test.** Sylheti is often treated as a dialect of Bengali, but speech recognition usually handles it poorly, and most engines do not list it at all. So:
 
-- Add a Sylheti set: the A1, A2 and A6 groups of Set A, plus B2 and B3 from Set B, recorded by Sylheti speakers.
-- Report Sylheti results separately. They do not count toward the Bengali score, so a weak Sylheti result does not sink an otherwise good Bengali provider.
-- Apply the urgent-term threshold (section 9) to Sylheti too. If no provider passes it, launch with a **human fallback** for Sylheti: the agent detects Sylheti (or the caller picks it) and routes to a staff member or a callback, instead of running voice intake or answers.
-- If the count shows Sylheti is rare, skip the set and note the gap in the ADR.
+- Sylheti speakers record the full Set A and Set B, like every other language.
+- Sylheti results are reported separately. They do not count toward the Bengali scores, so a weak Sylheti result does not sink an otherwise good Bengali provider.
+- The urgent-term threshold (section 9) applies to Sylheti too. If no provider passes it, launch with a **human fallback** for Sylheti: the agent detects Sylheti (or the client picks it) and routes to a staff member or a callback, instead of running voice answers or intake.
+- Expect some providers to have no Sylheti option. Test them by sending Sylheti audio to their Bengali model, which is what would happen in real use.
 
-**[Assumption]** Speakers are firm staff, their families, or paid community volunteers. They read scripts with fake personas only. No real client audio or data is used in any test.
+Speakers read scripts with fake personas only. No real client audio or data is used in any test.
 
 ### Conditions
 
@@ -225,31 +228,43 @@ Scores are 0 to 5 per area, from the metrics above. Weights reflect that Nepali 
 | Area | Weight | Score 5 looks like | Score 1 looks like |
 | --- | --- | --- | --- |
 | Nepali STT (CER, key terms) | 20% | Few errors, key terms right | Frequent errors, IDs and terms garbled |
-| Bengali STT | 20% | As above | As above |
+| Bengali STT (Bangladeshi and Indian, equal weight) | 20% | As above | As above |
 | Nepali TTS (MOS, pronunciation) | 10% | Sounds natural, terms and numbers right | Robotic or mispronounces common terms |
-| Bengali TTS | 10% | As above | As above |
+| Bengali TTS (Bangladeshi and Indian, equal weight) | 10% | As above | As above |
 | Latency and turn-taking on the app | 15% | Meets targets | p95 over 4 s, frequent cut-offs |
 | Language detection and switching | 10% | Detects and switches in one turn | Replies in the wrong language |
 | Phone-line readiness (STT on C3 and C4, phone latency, Twilio fit) | 5% | Small drop from app results, Twilio works cleanly | Large drop, or Twilio setup is fragile |
 | English quality | 5% | Strong on accented English | Struggles with South Asian accents |
 | Cost per minute against the cap | 5% | Well inside the cap | Over the cap |
 
+**Sylheti** is scored on the same STT and urgent-term metrics but kept out of the weighted total. It decides one thing: voice for Sylheti, or the human fallback (section 5).
+
+**Reweighting.** These weights treat each language equally because the client mix is unknown. When the firm sends real language shares, adjust the Nepali, Bengali and English weights, and the Bangladeshi versus Indian split inside Bengali, in proportion to those shares. Keep the non-language rows (latency, switching, phone, cost) as they are. If Sylheti turns out to be a large share, consider giving it its own row.
+
 **App weighting.** Inside each STT and TTS row, app conditions (C1, C2) count for 75% and phone conditions (C3, C4) for 25%. **[Assumption]** on the 75/25 split; it follows the app-first launch order.
 
 ### Cost cap
 
-**[Firm decision, to confirm with the partners]** Target **$0.15 to $0.25 per minute, all-in** for app questions ("Ask by voice"). All-in means speech-to-text, the AI model, text-to-speech and, where used, telephony.
+**[Firm decision]** All-in cost per minute means speech-to-text, the AI model, text-to-speech and, where used, telephony.
 
-- Where it comes from: Client Plus is $12.99 a month. At about 20 minutes of talk per active user per month, voice costs must stay well under about $0.65 a minute to leave any margin.
-- New-client intake calls can justify a higher cap, since one retained case is worth far more than the call. **The intake cap is not set yet** (section 14).
-- How it is scored: a provider within $0.15 to $0.25 scores 3 to 5; over $0.25 scores 1 or 2 and is flagged in the ADR. It is not a hard fail until the partners confirm the cap.
+| Use | Target | Ceiling |
+| --- | --- | --- |
+| App questions ("Ask by voice") | $0.15 to $0.25 per minute | $0.25 |
+| New-client intake | up to $0.50 per minute | $0.75 hard ceiling, allowed only if the provider is clearly better in Nepali and Bengali |
+
+- Why the app cap is lower: Client Plus is $12.99 a month. At about 20 minutes of talk per active user per month, voice costs must stay well under about $0.65 a minute to leave any margin. Intake can cost more, since one retained case is worth far more than the call.
+- How it is scored: within target scores 3 to 5; between target and ceiling scores 1 or 2; over the ceiling for its use is a hard fail.
+- **"Clearly better" for the $0.75 intake ceiling** **[Assumption]**: the provider's combined Nepali and Bengali STT and TTS score (the four language rows) is at least 0.5 points higher, on the 0 to 5 scale, than the best provider that is under $0.50, and it passes every hard threshold. The firm can change this definition.
 - Compute cost at expected volume, using each vendor's quoted price, and include the LLM cost even where it is billed separately.
+- These caps are starting points; confirm them with the partners before the ADR.
 
 **Hard thresholds** (a provider fails, whatever its total):
 
 - Urgent-term recall below 100% on clean audio (C1) or below 95% on phone audio (C3), in any language. **[Assumption]** on the 95%; the guardrail spec requires that all urgent fixtures escalate, and the escalation checker can only see what STT gives it.
 - Number and date exact match below 90% on C1 in any language.
+- For Sylheti, missing either threshold does not fail the provider. It switches Sylheti to the human fallback (section 5).
 - Any Gate 0 failure.
+- Cost over the ceiling for its use (section 9, cost cap).
 
 **Splitting providers:** if one provider wins on STT and another on TTS, we may pick a combination (through Vapi, Retell, or our own adapter) as long as every part passes Gate 0. Note the extra latency of a chained setup.
 
@@ -257,9 +272,10 @@ Scores are 0 to 5 per area, from the metrics above. Weights reflect that Nepali 
 
 | Role | People | What they score |
 | --- | --- | --- |
-| Native-speaker panel, Nepali | 3 listeners, not the same people who recorded | TTS MOS, intelligibility, pronunciation; key-term and urgent-term judgements on STT output |
-| Native-speaker panel, Bengali | 3 listeners, including at least 1 Bangladeshi | Same |
-| English listeners | 2 | Same for English |
+| Nepali panel | [Nepali-speaking paralegal], [second Nepali speaker on staff] | TTS MOS, intelligibility, pronunciation; key-term and urgent-term judgements on STT output |
+| Bengali panel | [staff Bengali speaker], [freelance native speaker] | Same, for Bangladeshi and Indian Bengali |
+| Sylheti panel | [freelance native speaker], plus one more still to find | Same, for Sylheti |
+| English listeners | 2, still to name | Same, for English |
 | Supervising attorney (or attorney-designated paralegal) | 1 | Signs off the scripts; reviews key-term errors that could change legal meaning (for example "citizen" vs "green card holder") |
 | Ethics counsel | 1 | Reviews Gate 0 vendor evidence against E1 to E9; pass or fail per vendor |
 | Engineer | 1 | CER, WER, latency, detection metrics, Gate 0 evidence, cost |
@@ -269,8 +285,11 @@ Scoring rules:
 
 - Listeners score blind: provider names hidden, clip order randomised.
 - Each listener scores every clip for their language. Use the median across listeners.
+- Two listeners per language is the minimum. A third per language makes ties and disagreements easier to settle, so add one where budget allows.
+- Listeners should not score clips they recorded themselves.
+- The Bengali panel should cover both accents. If neither listener grew up with one of the two (Bangladeshi or Indian), add a listener who did.
 - Check agreement on a 10-clip overlap set; if listeners disagree by 2 or more points on many clips, hold a short calibration session and rescore.
-- **[Assumption]** Bilingual firm staff can serve as listeners; if the panel is mostly staff, add at least one outside listener per language who matches the client profile (older, less English).
+- **[Assumption]** Staff listeners are fine, but where a panel is all staff, the post-call questions in section 8 should also be asked of a few speakers who match the client profile (older, less English).
 
 ## 11. Data handling during the test
 
@@ -299,22 +318,24 @@ Scoring rules:
 
 ## 14. Open items for the firm
 
-### Still needed
+### Still needed before testing can start
 
-1. **Language share.** Approximate share of clients who speak Nepali, Bangladeshi Bengali, Indian Bengali, Sylheti, English and other languages.
-   - Where to get it: the CRM's preferred-language field, or a count of the last 6 to 12 months of intakes. The front desk can also estimate from call volume.
-   - Why it matters: it sets the Bengali dialect weighting, and decides whether the Sylheti set and the Sylheti human fallback (section 5) are needed.
-2. **Testers.** At least two native speakers per language: one to record test calls, one to score them independently (section 10 asks for three listeners where possible).
-   - The prototype lists a paralegal who speaks Nepali and English. Bengali speakers still need to be found, and a Sylheti speaker if that group is significant.
-   - If staff don't have the time, a paid freelance native speaker for a week of scoring works too.
-   - Names: not yet given.
-3. **Intake cost cap.** Maximum per-minute cost for new-client intake calls: not yet set.
-4. **Partner sign-off** on the $0.15 to $0.25 per minute app cap.
-5. **Ethics counsel** review of vendors against the E1 to E9 checklist (section 3), and any items counsel wants to add.
+1. **Vendor paperwork and ethics review (longest lead time).** Request DPAs, security reports and contract terms from each candidate for Gate 0 (G1 to G5, E1 to E9), and get ethics counsel's review. Start this first.
+2. **Confirm the people.** Replace the bracketed roles in section 10 with names, find a second Sylheti listener and two English listeners, and check the Bengali panel covers both accents. Book the freelancers.
+3. **Recruit speakers.** 6 per language, 30 in total (section 5), separate from the listeners. Get signed recording consent forms.
+4. **Translate and review scripts.** Translate Sets A, B and C into Nepali, Bangladeshi Bengali, Indian Bengali and Sylheti; supervising attorney signs off the terms.
+5. **Accounts and setup.** Trial or sales accounts with each vendor, a Twilio test number, and US-region storage for recordings.
+6. **Partner sign-off** on the cost caps in section 9.
+
+### Not blocking, needed later
+
+- **Real language shares** from the CRM's preferred-language field, the last 6 to 12 months of intakes, or front-desk call volume. Used to reweight the scores (section 9) before the ADR.
 
 ### Decided (2026-11-27)
 
 - Launch order: app first ("Ask by voice" for existing clients), then the phone line.
-- App cost target: $0.15 to $0.25 per minute all-in, pending partner confirmation.
+- Equal test samples for Nepali, Bangladeshi Bengali, Indian Bengali, Sylheti and English until real shares arrive; then reweight.
+- Sylheti is in the test, scored separately, with a human fallback if no provider handles it safely.
+- Cost caps: app $0.15 to $0.25 per minute; intake $0.50 per minute, $0.75 hard ceiling only for a provider clearly better in Nepali and Bengali.
 - Ethics counsel vendor checklist added to Gate 0 as pass or fail criteria.
-- Sylheti is a conditional test language, with a human fallback if no provider handles it.
+- Tester roles set (section 10); names to confirm.
