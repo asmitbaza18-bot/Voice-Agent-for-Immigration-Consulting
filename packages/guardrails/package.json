@@ -1,0 +1,14 @@
+{
+  "name": "@chhetry/guardrails",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Legal-question classifier, output checks (Milestone 1)",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {"@chhetry/shared": "workspace:*", "@chhetry/i18n": "workspace:*"},
+  "devDependencies": { "typescript": "~5.9.3", "vitest": "^4.1.0", "@types/node": "^22.10.0" }
+}

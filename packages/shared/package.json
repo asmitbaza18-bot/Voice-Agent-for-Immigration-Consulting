@@ -1,0 +1,14 @@
+{
+  "name": "@chhetry/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared types, PII-safe logger, config",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {},
+  "devDependencies": { "typescript": "~5.9.3", "vitest": "^4.1.0", "@types/node": "^22.10.0" }
+}

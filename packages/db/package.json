@@ -1,0 +1,27 @@
+{
+  "name": "@chhetry/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Prisma schema, migrations, field encryption helpers",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests",
+    "generate": "prisma generate",
+    "validate": "prisma validate",
+    "migrate:dev": "prisma migrate dev"
+  },
+  "dependencies": {
+    "@chhetry/shared": "workspace:*",
+    "@prisma/client": "7.10.1"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.0",
+    "@types/node": "^22.10.0",
+    "prisma": "7.10.1"
+  }
+}

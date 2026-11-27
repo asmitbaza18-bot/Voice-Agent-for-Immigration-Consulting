@@ -1,0 +1,23 @@
+{
+  "name": "@chhetry/crm",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "CrmAdapter interface and implementations",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@chhetry/shared": "workspace:*",
+    "@chhetry/db": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.0",
+    "@types/node": "^22.10.0"
+  }
+}
