@@ -4,13 +4,15 @@ Status: draft for review
 Owner: engineering (test harness and objective metrics); native-speaker panel (subjective scores); supervising attorney (vocabulary and script sign-off)
 Decision it feeds: the first voice adapter for Milestone 2, recorded as an ADR in `docs/decisions/`
 
-Anything marked **[Assumption]** is a guess to confirm before testing starts. Vendor capabilities listed here are **not verified**; Gate 0 exists to check them.
+Anything marked **[Assumption]** is a guess to confirm before testing starts. Anything marked **[Firm decision]** was answered by the firm on 2026-11-27. Items still to be filled in are listed in section 14. Vendor capabilities listed here are **not verified**; Gate 0 exists to check them.
 
 ---
 
 ## 1. Goal
 
 Pick the first voice provider for the Chhetry Law voice layer, mainly on how well it **understands and speaks Nepali and Bengali**, with English as a baseline. The provider has to pass the spec's must-haves (no training on our data, US region) before its quality counts.
+
+**[Firm decision]** Launch order: the **app first** ("Ask by voice" for existing, signed-in clients, answering from their own file), **then the phone line**. The scoring in this plan weights app audio and app latency above phone-line results to match. Phone-line tests still run, so we know early whether the same provider can serve the phone line later.
 
 We are choosing a provider for the first adapter only. All voice code goes through the provider-neutral `VoiceAdapter` interface, so this choice can be changed later.
 
@@ -38,20 +40,35 @@ The LLM is held constant (Claude, per the spec) wherever the platform lets us br
 
 ## 3. Gate 0: must-haves (pass or fail, before any quality testing)
 
-A candidate that fails any line here is dropped, whatever its quality. Get each answer in writing (contract, DPA, or vendor docs page), and record the link.
+A candidate that fails any line here is dropped, whatever its quality. Get each answer in writing (contract, DPA, or vendor docs page), and record the link. For Vapi and Retell, every sub-vendor in the call path (STT, TTS, telephony) must pass too.
+
+### Product and platform
 
 | # | Requirement | Evidence to collect |
 | --- | --- | --- |
 | G1 | No training on our audio, transcripts or outputs, by default or by contract | DPA or enterprise terms clause |
 | G2 | Data processed and stored in the US, including every sub-vendor in the call path | Data residency statement, subprocessor list |
-| G3 | Retention control: we can set zero or short retention for audio and transcripts | Settings page or contract |
-| G4 | We control recording: recording can be off until consent, per the disclosure flow | API flag or setting |
-| G5 | Works with Twilio for the phone line (SIP or media streams) | Docs, plus a working test call |
-| G6 | Supports Nepali and Bengali in both STT and TTS (not only one) | Language list, plus a 1-minute live check |
-| G7 | Security posture: SOC 2 Type II (or equal), encryption in transit and at rest | Report or trust page |
-| G8 | Will sign a DPA, and a confidentiality agreement suitable for attorney-client data | Sales or legal confirmation |
+| G3 | We control recording: recording can be off until consent, per the disclosure flow | API flag or setting |
+| G4 | Supports Nepali and Bengali in both STT and TTS (not only one) | Language list, plus a 1-minute live check |
+| G5 | Works with Twilio for the phone line (SIP or media streams). Needed for the phone phase, not the app launch | Docs, plus a working test call |
 
-**[Assumption]** HIPAA BAA is not required, since this is legal and not health data. Ethics counsel should confirm what confidentiality terms are enough (Milestone 4 sign-off).
+### Ethics counsel vendor checklist
+
+**[Firm decision]** Ethics counsel will review each vendor against the items below, and each one is pass or fail in this gate. This is a checklist to bring to counsel, not legal advice; counsel may add to it.
+
+| # | Requirement | Evidence to collect |
+| --- | --- | --- |
+| E1 | A data processing agreement (DPA) that confirms no training on our data **and** no human review of our audio by vendor staff, or a way to opt out of human review | Signed or signable DPA |
+| E2 | Retention and deletion: how long audio and transcripts are kept, we can set short or zero retention, and we can delete on request | DPA clause, settings page, deletion API or process |
+| E3 | Subprocessor list (the other companies that handle our data), with notice before that list changes | Published list, notice clause |
+| E4 | Encryption in transit and at rest, plus access logging of who at the vendor touches our data | Security docs or trust page |
+| E5 | Security attestation: SOC 2 Type II or ISO 27001 | Current report or certificate |
+| E6 | Breach notification terms with a stated time limit | Contract clause |
+| E7 | Confidentiality terms strong enough for the duty of confidentiality (ABA Model Rule 1.6), supporting the vendor due diligence described in ABA Formal Opinion 512 | Contract clause, counsel's review notes |
+| E8 | Support for playing a recording disclosure and capturing consent before recording starts | API feature, plus a working test |
+| E9 | Indemnity and liability terms for data incidents | Contract clause |
+
+**[Assumption]** HIPAA BAA is not required, since this is legal and not health data. Counsel can override this.
 
 ## 4. What we measure
 
@@ -72,14 +89,22 @@ A candidate that fails any line here is dropped, whatever its quality. Get each 
 | Nepali | 6 to 8 | Mixed gender; at least 2 aged 55+; Kathmandu-valley and Terai or hill accents |
 | Bengali | 6 to 8 | Mixed gender; at least 2 aged 55+; Bangladeshi (Dhaka and Sylheti-influenced) and West Bengal accents |
 | English | 4 | At least 2 non-native speakers with South Asian accents |
+| Sylheti (conditional) | 3 to 4 | Only if the language-share count (section 14) shows Sylheti is significant |
 
-**[Assumption]** Most Bengali-speaking clients are from Bangladesh, so Bangladeshi Bengali gets more weight. Confirm with intake staff. If Sylheti speakers are common among clients, add a small Sylheti probe set; most engines do not support Sylheti, and we should know that before launch.
+**[Assumption]** Most Bengali-speaking clients are from Bangladesh, so Bangladeshi Bengali gets more weight. This stays an assumption until the language-share count in section 14 comes back.
+
+**Sylheti (conditional test language).** Sylheti is often treated as a dialect of Bengali, but speech recognition usually handles it poorly, and most engines do not list it at all. If the language-share count shows a significant share of Sylheti-speaking clients:
+
+- Add a Sylheti set: the A1, A2 and A6 groups of Set A, plus B2 and B3 from Set B, recorded by Sylheti speakers.
+- Report Sylheti results separately. They do not count toward the Bengali score, so a weak Sylheti result does not sink an otherwise good Bengali provider.
+- Apply the urgent-term threshold (section 9) to Sylheti too. If no provider passes it, launch with a **human fallback** for Sylheti: the agent detects Sylheti (or the caller picks it) and routes to a staff member or a callback, instead of running voice intake or answers.
+- If the count shows Sylheti is rare, skip the set and note the gap in the ADR.
 
 **[Assumption]** Speakers are firm staff, their families, or paid community volunteers. They read scripts with fake personas only. No real client audio or data is used in any test.
 
 ### Conditions
 
-Each speaker records every STT script in these conditions:
+Each speaker records every STT script in these conditions. App conditions (C1, C2) carry more weight in scoring than phone conditions (C3, C4), because the app launches first.
 
 | Code | Channel | Setup |
 | --- | --- | --- |
@@ -119,7 +144,7 @@ Each speaker does 4 short scripted role-plays with the test agent. The agent fol
 | --- | --- | --- |
 | B1 New-client intake | disclosures → triage → goal → core questions | Long answers, names, dates, consent "yes" or "no" |
 | B2 Urgent escalation | disclosures → triage with "my hearing is tomorrow" | Must detect the urgent term and stop intake |
-| B3 Ask from file | "When is my interview?" "Did my work permit get approved?" | Short questions, case terms |
+| B3 Ask from file (the launch use case) | "When is my interview?" "Did my work permit get approved?" | Short questions, case terms |
 | B4 Language switch | Start in English, switch to Nepali or Bengali mid-call, then mix | Detection speed, no broken replies |
 
 ### Set C: TTS prompts (about 25 per language)
@@ -187,7 +212,7 @@ Measure on the app channel and on the phone line, from a US-East client. Keep th
 
 1. For each provider, build the same small test agent with a fixed script (B1 to B4) and Claude as the LLM where possible.
 2. Connect it to a Twilio test number and to a minimal app test page.
-3. Each speaker does B1 to B4 once per provider, on the phone line and on the app (order of providers randomised per speaker to avoid fatigue bias).
+3. Each speaker does B1 to B4 once per provider on the app. B2 and B3 are also done on the phone line, to check the later phone phase (order of providers randomised per speaker to avoid fatigue bias).
 4. Log timestamps for every turn (user speech end, first audio out) and save transcripts for scoring.
 5. After each call, the speaker answers three questions (1 to 5): "Did it understand you?", "Was it easy to talk to?", "Would your parents be comfortable using it?"
 
@@ -199,15 +224,26 @@ Scores are 0 to 5 per area, from the metrics above. Weights reflect that Nepali 
 
 | Area | Weight | Score 5 looks like | Score 1 looks like |
 | --- | --- | --- | --- |
-| Nepali STT (CER, key terms, phone line) | 20% | Few errors, key terms right, small drop on phone line | Frequent errors, IDs and terms garbled |
+| Nepali STT (CER, key terms) | 20% | Few errors, key terms right | Frequent errors, IDs and terms garbled |
 | Bengali STT | 20% | As above | As above |
 | Nepali TTS (MOS, pronunciation) | 10% | Sounds natural, terms and numbers right | Robotic or mispronounces common terms |
 | Bengali TTS | 10% | As above | As above |
-| Latency and turn-taking | 15% | Meets targets on both channels | p95 over 4 s, frequent cut-offs |
+| Latency and turn-taking on the app | 15% | Meets targets | p95 over 4 s, frequent cut-offs |
 | Language detection and switching | 10% | Detects and switches in one turn | Replies in the wrong language |
+| Phone-line readiness (STT on C3 and C4, phone latency, Twilio fit) | 5% | Small drop from app results, Twilio works cleanly | Large drop, or Twilio setup is fragile |
 | English quality | 5% | Strong on accented English | Struggles with South Asian accents |
-| Operations (Twilio fit, admin, docs, support) | 5% | Easy to run and debug | Hard to configure or monitor |
-| Cost per minute | 5% | Lowest of the passing set | Highest by a wide margin |
+| Cost per minute against the cap | 5% | Well inside the cap | Over the cap |
+
+**App weighting.** Inside each STT and TTS row, app conditions (C1, C2) count for 75% and phone conditions (C3, C4) for 25%. **[Assumption]** on the 75/25 split; it follows the app-first launch order.
+
+### Cost cap
+
+**[Firm decision, to confirm with the partners]** Target **$0.15 to $0.25 per minute, all-in** for app questions ("Ask by voice"). All-in means speech-to-text, the AI model, text-to-speech and, where used, telephony.
+
+- Where it comes from: Client Plus is $12.99 a month. At about 20 minutes of talk per active user per month, voice costs must stay well under about $0.65 a minute to leave any margin.
+- New-client intake calls can justify a higher cap, since one retained case is worth far more than the call. **The intake cap is not set yet** (section 14).
+- How it is scored: a provider within $0.15 to $0.25 scores 3 to 5; over $0.25 scores 1 or 2 and is flagged in the ADR. It is not a hard fail until the partners confirm the cap.
+- Compute cost at expected volume, using each vendor's quoted price, and include the LLM cost even where it is billed separately.
 
 **Hard thresholds** (a provider fails, whatever its total):
 
@@ -225,6 +261,7 @@ Scores are 0 to 5 per area, from the metrics above. Weights reflect that Nepali 
 | Native-speaker panel, Bengali | 3 listeners, including at least 1 Bangladeshi | Same |
 | English listeners | 2 | Same for English |
 | Supervising attorney (or attorney-designated paralegal) | 1 | Signs off the scripts; reviews key-term errors that could change legal meaning (for example "citizen" vs "green card holder") |
+| Ethics counsel | 1 | Reviews Gate 0 vendor evidence against E1 to E9; pass or fail per vendor |
 | Engineer | 1 | CER, WER, latency, detection metrics, Gate 0 evidence, cost |
 | Product owner (ASMIT) | 1 | Collects scores, runs the final weighting, writes the ADR |
 
@@ -252,7 +289,7 @@ Scoring rules:
 | 2 to 3 | Live calls (Set B); listener scoring sessions |
 | 3 | Compile results, apply rubric, write the ADR |
 
-**[Assumption]** Vendor trial or sales accounts can be set up within week 1. Enterprise terms (G1, G2, G8) may take longer; start those conversations first.
+**[Assumption]** Vendor trial or sales accounts can be set up within week 1. Enterprise terms (G1, G2 and E1 to E9) may take longer, and ethics counsel needs time to review them; start those conversations first.
 
 ## 13. Output
 
@@ -260,10 +297,24 @@ Scoring rules:
 2. An ADR in `docs/decisions/` naming the first provider, the runner-up, the scores, Gate 0 evidence links, and known weak spots (for example "Sylheti not supported").
 3. Saved test set (scripts, reference transcripts, audio) reused as a regression suite whenever we change provider or model.
 
-## 14. Open questions for the firm
+## 14. Open items for the firm
 
-1. Roughly what share of clients speak Nepali, Bengali (Bangladesh), Bengali (India), or Sylheti?
-2. Who on staff can record and listen for each language?
-3. Is the first launch channel the app or the phone line? That changes the weight of C3 and C4.
-4. Is there a cost ceiling per minute?
-5. Does ethics counsel need anything beyond G1 to G8 from a speech vendor?
+### Still needed
+
+1. **Language share.** Approximate share of clients who speak Nepali, Bangladeshi Bengali, Indian Bengali, Sylheti, English and other languages.
+   - Where to get it: the CRM's preferred-language field, or a count of the last 6 to 12 months of intakes. The front desk can also estimate from call volume.
+   - Why it matters: it sets the Bengali dialect weighting, and decides whether the Sylheti set and the Sylheti human fallback (section 5) are needed.
+2. **Testers.** At least two native speakers per language: one to record test calls, one to score them independently (section 10 asks for three listeners where possible).
+   - The prototype lists a paralegal who speaks Nepali and English. Bengali speakers still need to be found, and a Sylheti speaker if that group is significant.
+   - If staff don't have the time, a paid freelance native speaker for a week of scoring works too.
+   - Names: not yet given.
+3. **Intake cost cap.** Maximum per-minute cost for new-client intake calls: not yet set.
+4. **Partner sign-off** on the $0.15 to $0.25 per minute app cap.
+5. **Ethics counsel** review of vendors against the E1 to E9 checklist (section 3), and any items counsel wants to add.
+
+### Decided (2026-11-27)
+
+- Launch order: app first ("Ask by voice" for existing clients), then the phone line.
+- App cost target: $0.15 to $0.25 per minute all-in, pending partner confirmation.
+- Ethics counsel vendor checklist added to Gate 0 as pass or fail criteria.
+- Sylheti is a conditional test language, with a human fallback if no provider handles it.
