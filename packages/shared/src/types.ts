@@ -64,6 +64,7 @@ export type ModuleId = 'core' | 'history' | 'family' | 'employment'
 export type FieldValue =
   | string | number | boolean | null
   | string[]
+  | number[]
   | { kind: 'date'; value: string }
   | { kind: 'encrypted'; value: EncryptedString }
   | { kind: 'discuss_with_attorney' };
