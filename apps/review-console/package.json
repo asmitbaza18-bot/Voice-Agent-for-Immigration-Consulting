@@ -1,0 +1,13 @@
+{
+  "name": "@chhetry/review-console",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Minimal attorney review console (static page served by the API)",
+  "exports": { ".": "./src/index.ts" },
+  "scripts": {
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "devDependencies": { "typescript": "~5.9.3", "vitest": "^4.1.0", "@types/node": "^22.10.0" }
+}

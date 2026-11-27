@@ -1,0 +1,31 @@
+{
+  "name": "@chhetry/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Fastify API (text-first, Milestone 1). Voice session gateway comes in Milestone 2.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run --passWithNoTests"
+  },
+  "dependencies": {
+    "@chhetry/agent": "workspace:*",
+    "@chhetry/crm": "workspace:*",
+    "@chhetry/db": "workspace:*",
+    "@chhetry/i18n": "workspace:*",
+    "@chhetry/review-console": "workspace:*",
+    "@chhetry/shared": "workspace:*",
+    "fastify": "^5.12.8",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.0"
+  }
+}

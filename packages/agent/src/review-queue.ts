@@ -32,6 +32,13 @@ export interface ReviewQueue {
   clientAnswers(personId: string): Promise<{ id: string; question?: string; answer: string; decidedAt: string }[]>;
 }
 
+/** Drafts that start with this are placeholders, not answers. They cannot be approved as-is. */
+export const NO_DRAFT_PREFIX = '(No AI draft';
+
+export class ReviewDecisionError extends Error {
+  override name = 'ReviewDecisionError';
+}
+
 export class ReviewNotFoundError extends Error {
   override name = 'ReviewNotFoundError';
 }
@@ -135,7 +142,8 @@ export class InMemoryReviewQueue implements ReviewQueue {
     const s = this.items.get(id);
     if (!s) throw new ReviewNotFoundError(`Review item ${id} not found`);
     if (s.status !== 'open') throw new ReviewAlreadyDecidedError(`Review item ${id} is already ${s.status}`);
-    if (d.decision === 'edit_send' && !d.finalText.trim()) throw new Error('finalText is required for edit_send');
+    if (d.decision === 'edit_send' && !d.finalText.trim()) throw new ReviewDecisionError('finalText is required for edit_send');
+    if (d.decision === 'approve' && this.view(s).aiDraft.startsWith(NO_DRAFT_PREFIX)) throw new ReviewDecisionError('There is no draft to approve; use edit_send with your answer');
     s.status = STATUS_FOR[d.decision];
     s.attorneyId = attorneyId;
     s.decidedAt = this.now();

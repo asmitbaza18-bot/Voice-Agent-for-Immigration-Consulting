@@ -100,6 +100,14 @@ describe('review queue', () => {
     await expect(d.reviewQueue.decide(a.id, 'atty', { decision: 'approve' })).rejects.toThrow(ReviewAlreadyDecidedError);
   });
 
+  it('a placeholder draft cannot be approved as-is', async () => {
+    const d = deps();
+    const a = await d.reviewQueue.create({ kind: 'legal_question', personId: 'p1', aiDraft: '(No AI draft.)' });
+    await expect(d.reviewQueue.decide(a.id, 'atty', { decision: 'approve' })).rejects.toThrow(/no draft/);
+    await d.reviewQueue.decide(a.id, 'atty', { decision: 'edit_send', finalText: 'Real answer' });
+    expect((await d.reviewQueue.clientAnswers('p1'))[0]?.answer).toBe('Real answer');
+  });
+
   it('assessments never appear as client answers', async () => {
     const d = deps();
     const a = await d.reviewQueue.create({ kind: 'assessment', personId: 'p1', aiDraft: 'memo' });

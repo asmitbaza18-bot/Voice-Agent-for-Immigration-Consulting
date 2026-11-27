@@ -10,7 +10,7 @@ export type AuditAction =
   | 'assessment.create' | 'ai.output' | 'ai.output.blocked'
   | 'review.create' | 'review.approve' | 'review.edit_send' | 'review.call_client' | 'review.reject'
   | 'escalation.create' | 'crm.write'
-  | 'tool.call' | 'tool.denied';
+  | 'tool.call' | 'tool.denied' | 'review.read';
 
 export interface AuditEntryInput {
   actorType: 'user' | 'agent' | 'system';
