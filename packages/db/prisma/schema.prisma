@@ -187,6 +187,8 @@ model ReviewItem {
   aiDraftEnc   String
   /// Attorney-approved text that may reach the client (guardrail 1).
   finalTextEnc String?
+  /// Why the item was queued: classifier reason (eligibility, travel, criminal, ...), not_in_file, answer_blocked.
+  reason       String?
   status       ReviewStatus @default(open)
   attorneyId   String?
   decidedAt    DateTime?

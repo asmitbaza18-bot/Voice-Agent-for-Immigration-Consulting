@@ -3,12 +3,28 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Orchestrator (Milestone 1)",
-  "exports": { ".": "./src/index.ts" },
+  "description": "Orchestrator: dialog state machine, tools, LLM adapter, review queue",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run --passWithNoTests"
   },
-  "dependencies": {"@chhetry/shared": "workspace:*"},
-  "devDependencies": { "typescript": "~5.9.3", "vitest": "^4.1.0", "@types/node": "^22.10.0" }
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
+    "@chhetry/shared": "workspace:*",
+    "zod": "^4.6.7",
+    "@chhetry/crm": "workspace:*",
+    "@chhetry/db": "workspace:*",
+    "@chhetry/guardrails": "workspace:*",
+    "@chhetry/i18n": "workspace:*",
+    "@chhetry/rules": "workspace:*",
+    "@chhetry/intake-schema": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "~5.9.3",
+    "vitest": "^4.1.0"
+  }
 }

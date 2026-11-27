@@ -368,12 +368,12 @@ All endpoints: auth, role check, audit log, PII-safe logging.
 
 ### Milestone 1: Text-first agent (week 3 to 5)
 Build the whole flow with text before adding voice. It is faster to test.
-- [ ] Intake schema for triage, core, history, family, removal
-- [ ] Orchestrator state machine with tests for every transition
-- [ ] Guardrails classifier and output checker with red-team fixtures
-- [ ] Rules engine with the starter rules (`verified: false`) and tests
-- [ ] Ask-from-file answers using `getCaseFacts`
-- [ ] Review queue API + minimal attorney console
+- [x] Intake schema for triage, core, history, family, removal
+- [x] Orchestrator state machine with tests for every transition
+- [x] Guardrails classifier and output checker with red-team fixtures
+- [x] Rules engine with the starter rules (`verified: false`) and tests
+- [x] Ask-from-file answers using `getCaseFacts`
+- [x] Review queue API + minimal attorney console
 
 ### Milestone 2: Voice (week 6 to 8)
 - [ ] Voice adapter interface + first provider

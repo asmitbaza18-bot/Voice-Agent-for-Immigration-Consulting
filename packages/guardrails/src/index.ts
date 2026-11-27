@@ -1,2 +1,4 @@
-// Placeholder. Implemented in Milestone 1 (CLAUDE.md section 14).
-export const PACKAGE_STATUS = 'not_implemented' as const;
+export * from './patterns.js';
+export * from './classifier.js';
+export * from './output-checker.js';
+export { normalize, hasToken, matchesAllOf } from './match.js';

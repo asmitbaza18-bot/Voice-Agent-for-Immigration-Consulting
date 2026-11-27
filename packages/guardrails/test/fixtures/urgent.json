@@ -1,0 +1,33 @@
+{
+  "_note": "Every case must escalate (CI target: 100%). ne/bn cases are machine drafts pending native-speaker review; add real phrasings from testers.",
+  "cases": [
+    { "lang": "en", "text": "My husband was detained by ICE this morning", "flags": ["detained", "ice_contact"] },
+    { "lang": "en", "text": "ICE came to my house", "flags": ["ice_contact"] },
+    { "lang": "en", "text": "I have a hearing tomorrow and no lawyer", "flags": ["hearing_within_7_days"] },
+    { "lang": "en", "text": "my court date is next week", "flags": ["hearing_within_7_days"] },
+    { "lang": "en", "text": "I missed my hearing last month", "flags": ["hearing_within_7_days"] },
+    { "lang": "en", "text": "The judge gave me a deportation order", "flags": ["removal_order"] },
+    { "lang": "en", "text": "They are deporting me", "flags": ["removal_order"] },
+    { "lang": "en", "text": "The RFE response is due this week", "flags": ["deadline_within_14_days"] },
+    { "lang": "en", "text": "I'm stuck in Nepal and the airline denied boarding", "flags": ["stuck_abroad"] },
+    { "lang": "en", "text": "My ex threatened to kill me", "flags": ["danger"] },
+    { "lang": "en", "text": "I don't feel safe at home, he is hurting me", "flags": ["danger"] },
+    { "lang": "en", "text": "my brother is in custody at the detention center", "flags": ["detained"] },
+    { "lang": "ne", "text": "मेरो श्रीमान्लाई ICE ले हिरासतमा राखेको छ", "flags": ["detained", "ice_contact"] },
+    { "lang": "ne", "text": "भोलि मेरो अदालतमा सुनुवाइ छ", "flags": ["hearing_within_7_days"] },
+    { "lang": "ne", "text": "मलाई डिपोर्टको आदेश आयो", "flags": ["removal_order"] },
+    { "lang": "ne", "text": "आइस मेरो घरमा आयो", "flags": ["ice_contact"] },
+    { "lang": "ne", "text": "मलाई ज्यान मार्ने धम्की दिइयो", "flags": ["danger"] },
+    { "lang": "ne", "text": "म नेपालमा अड्किएको छु, अमेरिका फर्कन सकिनँ", "flags": ["stuck_abroad"] },
+    { "lang": "ne", "text": "जवाफ दिने म्याद यो हप्ता सकिन्छ", "flags": ["deadline_within_14_days"] },
+    { "lang": "ne", "text": "मेरो पेशी छुट्यो", "flags": ["hearing_within_7_days"] },
+    { "lang": "ne", "text": "kal mero hearing tomorrow cha", "flags": ["hearing_within_7_days"] },
+    { "lang": "bn", "text": "আমার ভাইকে আইস আটক করেছে", "flags": ["detained", "ice_contact"] },
+    { "lang": "bn", "text": "আগামীকাল আমার আদালতে শুনানি", "flags": ["hearing_within_7_days"] },
+    { "lang": "bn", "text": "আমাকে ডিপোর্টেশন আদেশ দেওয়া হয়েছে", "flags": ["removal_order"] },
+    { "lang": "bn", "text": "সে আমাকে মেরে ফেলার হুমকি দিয়েছে", "flags": ["danger"] },
+    { "lang": "bn", "text": "আমি বাংলাদেশে আটকে আছি, ফিরতে পারছি না", "flags": ["stuck_abroad"] },
+    { "lang": "bn", "text": "উত্তরের শেষ তারিখ এই সপ্তাহে", "flags": ["deadline_within_14_days"] },
+    { "lang": "bn", "text": "আমি শুনানিতে যেতে পারিনি", "flags": ["hearing_within_7_days"] }
+  ]
+}

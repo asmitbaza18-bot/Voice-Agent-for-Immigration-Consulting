@@ -1,0 +1,127 @@
+{
+  "version": "2026-11-27.draft-1",
+  "notice": "ATTORNEY MUST VERIFY every rule before use. These are engineering starting points, not legal conclusions. Immigration law has many exceptions (INA 245(i), immediate-relative overstay rules, waivers, TPS, parole). Flip verified to true only after review, and bump version.",
+  "owner": "UNASSIGNED (open decision: which attorney owns rules and scripts)",
+  "rules": [
+    {
+      "id": "triage.urgent_flags",
+      "description": "Urgent triage. Any flag stops intake and escalates (guardrail 5).",
+      "inputs": ["triage.detained", "triage.hearing_date", "triage.has_nta_or_removal_order", "triage.ice_contact", "triage.upcoming_deadline_date", "triage.stuck_abroad", "triage.in_danger", "removal.hearing_date"],
+      "logic": "detained -> detained. Hearing date 7 days or fewer from today, including dates already past (possible missed hearing) -> hearing_within_7_days. Removal order -> removal_order. ICE contact -> ice_contact. Deadline 14 days or fewer from today, including past -> deadline_within_14_days. Stuck abroad -> stuck_abroad. In danger -> danger.",
+      "output": "urgentFlags",
+      "citation": "Firm policy (CLAUDE.md guardrail 5)",
+      "owner": "UNASSIGNED",
+      "verified": false
+    },
+    {
+      "id": "entry.inspected",
+      "description": "Was the person inspected and admitted or paroled at last entry?",
+      "inputs": ["history.last_entry_manner"],
+      "logic": "last_entry_manner in (visa, vwp, parole) -> pathway hint 'inspected_admitted_or_paroled'. ewi -> red flag 'entry.ewi' for attorney (check 245(i) and other exceptions).",
+      "output": "pathwayHints, redFlags",
+      "citation": "INA 245(a)",
+      "owner": "UNASSIGNED",
+      "verified": false
+    },
+    {
+      "id": "bar.unlawful_presence_3y",
+      "description": "3-year unlawful presence bar flag.",
+      "inputs": ["history.overstay_length", "history.departed_after_overstay"],
+      "logic": "overstay_length = 180_days_to_1_year AND departed_after_overstay = true -> red flag.",
+      "output": "redFlags",
+      "citation": "INA 212(a)(9)(B)(i)(I)",
+      "owner": "UNASSIGNED",
+      "verified": false
+    },
+    {
+      "id": "bar.unlawful_presence_10y",
+      "description": "10-year unlawful presence bar flag.",
+      "inputs": ["history.overstay_length", "history.departed_after_overstay"],
+      "logic": "overstay_length = over_1_year AND departed_after_overstay = true -> red flag.",
+      "output": "redFlags",
+      "citation": "INA 212(a)(9)(B)(i)(II)",
+      "owner": "UNASSIGNED",
+      "verified": false
+    },
+    {
+      "id": "bar.permanent",
+      "description": "Permanent bar flag.",
+      "inputs": ["history.overstay_length", "history.prior_court_or_removal", "history.reentry_without_inspection"],
+      "logic": "(overstay_length = over_1_year OR prior_court_or_removal in (removal_order, deported)) AND reentry_without_inspection = true -> red flag.",
+      "output": "redFlags",
+      "citation": "INA 212(a)(9)(C)",
+      "owner": "UNASSIGNED",
+      "verified": false
+    },
+    {
+      "id": "asylum.one_year",
+      "description": "Asylum one-year filing deadline.",
+      "inputs": ["goal", "humanitarian.fear_of_return", "humanitarian.us_arrival_date"],
+      "logic": "If goal is humanitarian or fear_of_return is true, and us_arrival_date is known: deadline = arrival date + 1 year (Feb 29 rolls back to Feb 28). If that date is past, also a red flag so the attorney checks exceptions.",
+      "output": "deadlines, redFlags",
+      "citation": "INA 208(a)(2)(B), (D)",
+      "owner": "UNASSIGNED",
+      "verified": false
+    },
+    {
+      "id": "cspa.age_out",
+      "description": "Child age-out risk.",
+      "inputs": ["family.children_ages"],
+      "logic": "Any child aged 18, 19 or 20 -> red flag for attorney to compute CSPA age. Biological age only; the engine does not compute CSPA age.",
+      "output": "redFlags",
+      "citation": "INA 203(h)",
+      "owner": "UNASSIGNED",
+      "verified": false
+    },
+    {
+      "id": "n400.residence",
+      "description": "Naturalization continuous residence date.",
+      "inputs": ["naturalization.lpr_since", "naturalization.married_to_usc_years"],
+      "logic": "Residence date = lpr_since + 5 years, or + 3 years if married_to_usc_years >= 3 (attorney to confirm living in marital union and spouse's citizenship for 3 years). Output as a deadline-style date and a pathway hint once today is on or after it.",
+      "output": "deadlines, pathwayHints",
+      "citation": "INA 316(a), 319(a)",
+      "owner": "UNASSIGNED",
+      "verified": false
+    },
+    {
+      "id": "n400.early_filing",
+      "description": "N-400 early filing window.",
+      "inputs": ["naturalization.lpr_since", "naturalization.married_to_usc_years"],
+      "logic": "Earliest filing date = residence date (n400.residence) minus 90 days.",
+      "output": "deadlines",
+      "citation": "INA 334(a)",
+      "owner": "UNASSIGNED",
+      "verified": false
+    },
+    {
+      "id": "deadline.rfe",
+      "description": "RFE response date.",
+      "inputs": ["notices[kind=rfe].noticeDate", "notices[kind=rfe].responseDays"],
+      "logic": "Response due = notice date + response period stated on the notice. Attorney to confirm against the notice itself (mailing rules, extensions).",
+      "output": "deadlines",
+      "citation": "The notice itself",
+      "owner": "UNASSIGNED",
+      "verified": false
+    },
+    {
+      "id": "flag.criminal",
+      "description": "Any arrest, charge or conviction.",
+      "inputs": ["red_flags.arrests_charges_convictions"],
+      "logic": "Any answer other than an explicit 'no' (including 'discuss with attorney') -> red flag. The agent collects facts only (guardrail 4).",
+      "output": "redFlags",
+      "citation": "Attorney review",
+      "owner": "UNASSIGNED",
+      "verified": false
+    },
+    {
+      "id": "flag.prior_removal",
+      "description": "Prior court case, removal order or removal.",
+      "inputs": ["history.prior_court_or_removal"],
+      "logic": "prior_court_or_removal in (court_case, removal_order, deported, unsure) or 'discuss with attorney' -> red flag.",
+      "output": "redFlags",
+      "citation": "Attorney review",
+      "owner": "UNASSIGNED",
+      "verified": false
+    }
+  ]
+}

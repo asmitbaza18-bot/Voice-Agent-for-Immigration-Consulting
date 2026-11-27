@@ -1,3 +1,8 @@
 # apps/review-console
 
-Attorney review queue web app (CLAUDE.md sections 9 and 12). May live inside the mobile app first. Built in Milestone 1.
+Minimal attorney review console (Milestone 1). A static page and one script in `public/`, served by the API at `/console`.
+
+- Lists the review queue (`GET /v1/review`) and records decisions (`POST /v1/review/:id/decision`): approve, edit and send, call client, reject.
+- Needs an attorney bearer token. In local dev the API prints dev tokens on start.
+- Renders all queue text with `textContent` and is served with a strict CSP.
+- English-only staff tool for now. It moves into the app (with i18n) once the mobile app is scaffolded.
